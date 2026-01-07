@@ -397,18 +397,26 @@ app.get('/api/autocomplete', async (req, res) => {
     const encodedName = encodeURIComponent(name);
     const kimovilUrl = `https://www.kimovil.com/_json/autocomplete_devicemodels_joined.json?device_type=0&name=${encodedName}`;
     
-    // Inicia navegador headless
+    // Inicia navegador headless com configuração para produção
     browser = await puppeteer.launch({ 
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--window-size=1920x1080'
+      ]
     });
     const page = await browser.newPage();
+    await page.setViewport({ width: 1920, height: 1080 });
     
     // Configura user agent
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     
     // Acessa a URL
-    const response = await page.goto(kimovilUrl, { waitUntil: 'networkidle2' });
+    const response = await page.goto(kimovilUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     const jsonText = await page.evaluate(() => document.body.textContent);
     const data = JSON.parse(jsonText);
     
@@ -456,19 +464,32 @@ app.get('/api/scrape-kimovil', async (req, res) => {
     const kimovilUrl = `https://www.kimovil.com/pt/onde-comprar-${url}`;
     console.log(`📡 URL completa: ${kimovilUrl}`);
     
-    // Inicia navegador headless
+    // Inicia navegador headless com configuração para produção
     browser = await puppeteer.launch({ 
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--window-size=1920x1080',
+        '--disable-web-security',
+        '--disable-features=IsolateOrigins,site-per-process'
+      ]
     });
     const page = await browser.newPage();
+    await page.setViewport({ width: 1920, height: 1080 });
     
     // Configura user agent
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     
     // Acessa a página
     console.log('🌐 Abrindo página no navegador...');
-    await page.goto(kimovilUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+    await page.goto(kimovilUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    
+    // Aguarda um pouco para garantir que o conteúdo foi carregado
+    await page.waitForTimeout(3000);
     
     // Extrai o HTML da página
     const html = await page.content();
@@ -729,13 +750,21 @@ app.get('/api/scrape-olx', async (req, res) => {
     console.log(`🔍 Buscando preços na OLX: ${searchQuery}`);
     console.log(`🔗 URL: ${olxUrl}`);
     
-    // Abre navegador com Puppeteer
+    // Abre navegador com Puppeteer com configuração para produção
     browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--window-size=1920x1080'
+      ]
     });
     
     const page = await browser.newPage();
+    await page.setViewport({ width: 1920, height: 1080 });
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     
     console.log('🌐 Abrindo página da OLX...');
@@ -902,17 +931,25 @@ app.get('/api/scrape-amazon', async (req, res) => {
     console.log(`🔍 Buscando preços na Amazon: ${searchQuery}`);
     console.log(`🔗 URL: ${amazonUrl}`);
     
-    // Abre navegador com Puppeteer
+    // Abre navegador com Puppeteer com configuração para produção
     browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--window-size=1920x1080'
+      ]
     });
     
     const page = await browser.newPage();
+    await page.setViewport({ width: 1920, height: 1080 });
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     
     console.log('🌐 Abrindo página da Amazon...');
-    await page.goto(amazonUrl, { waitUntil: 'networkidle0', timeout: 45000 });
+    await page.goto(amazonUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
     
     // Aguarda a página carregar e faz scroll para carregar lazy loading
     await new Promise(resolve => setTimeout(resolve, 3000));
