@@ -7,7 +7,7 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 
 const app = express();
-const PORT = 3002;
+const PORT = process.env.PORT || 8080;
 
 // Habilita CORS para o frontend admin
 app.use(cors());
